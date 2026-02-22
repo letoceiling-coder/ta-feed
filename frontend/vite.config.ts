@@ -22,9 +22,6 @@ export default defineConfig(({ mode }) => ({
     outDir: "../public/frontend",
     emptyOutDir: true,
     manifest: true,
-    rollupOptions: {
-      input: path.resolve(__dirname, "index.html"),
-    },
   },
   base: "/frontend/",
 }));
