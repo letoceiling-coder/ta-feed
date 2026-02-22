@@ -16,6 +16,7 @@ class Deploy extends Command
                             {--skip-git : Skip git commit and push}
                             {--skip-frontend : Skip frontend build}
                             {--skip-migrations : Skip database migrations}
+                            {--install-deps : Install npm dependencies (skipped by default)}
                             {--message= : Custom commit message}';
 
     /**
@@ -59,7 +60,8 @@ class Deploy extends Command
 
         // Step 3: Install dependencies
         $this->info('📚 Step 3: Installing dependencies');
-        $report['dependencies'] = $this->installDependencies();
+        $depsResult = $this->installDependencies();
+        $report['dependencies'] = $depsResult;
         $this->newLine();
 
         // Step 4: Build frontend
