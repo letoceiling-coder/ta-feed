@@ -34,11 +34,11 @@ class Deploy extends Command
         $this->newLine();
 
         $report = [
-            'git' => false,
+            'git' => null, // null = skipped, true = success, false = error
             'server_update' => false,
             'dependencies' => false,
-            'frontend' => false,
-            'migrations' => false,
+            'frontend' => null,
+            'migrations' => null,
             'cache' => false,
         ];
 
@@ -334,13 +334,21 @@ class Deploy extends Command
         ];
 
         foreach ($statuses as $key => $label) {
-            $status = $report[$key] ? '✅' : '❌';
+            $value = $report[$key];
+            if ($value === null) {
+                $status = '⏭️ ';
+            } elseif ($value === true) {
+                $status = '✅';
+            } else {
+                $status = '❌';
+            }
             $this->line("   {$status} {$label}");
         }
 
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-        $allSuccess = !in_array(false, $report);
+        // Check if there are any actual errors (false values, not null)
+        $allSuccess = !in_array(false, array_filter($report, fn($v) => $v !== null));
         if ($allSuccess) {
             $this->newLine();
             $this->info('🎉 Deployment completed successfully!');
