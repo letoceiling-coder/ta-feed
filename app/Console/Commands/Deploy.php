@@ -203,7 +203,7 @@ class Deploy extends Command
 
         if ($checkResult === 'exists') {
             $this->line('   Installing frontend dependencies...');
-            $command = "ssh {$host} \"cd {$path}/frontend && npm install 2>&1\"";
+            $command = "ssh {$host} \"cd {$path}/frontend && timeout 120 npm install 2>&1\"";
             exec($command, $output, $returnCode);
 
             if ($returnCode !== 0) {
