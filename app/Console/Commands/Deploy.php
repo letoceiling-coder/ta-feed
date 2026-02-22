@@ -37,7 +37,7 @@ class Deploy extends Command
         $report = [
             'git' => null, // null = skipped, true = success, false = error
             'server_update' => false,
-            'dependencies' => false,
+            'dependencies' => null, // null = skipped (npm), true = success, false = error
             'frontend' => null,
             'migrations' => null,
             'cache' => false,
@@ -182,7 +182,7 @@ class Deploy extends Command
     /**
      * Install dependencies
      */
-    private function installDependencies(): bool
+    private function installDependencies(): ?bool
     {
         $host = env('DEPLOY_HOST', 'root@85.198.64.93');
         $path = env('DEPLOY_PATH', '/var/www/livegrid.ru');
@@ -204,21 +204,27 @@ class Deploy extends Command
         $checkResult = trim(shell_exec($checkCommand));
 
         if ($checkResult === 'exists') {
-            $this->line('   Installing frontend dependencies...');
-            $command = "ssh {$host} \"cd {$path}/frontend && timeout 120 npm install 2>&1\"";
-            exec($command, $output, $returnCode);
+            if ($this->option('install-deps')) {
+                $this->line('   Installing frontend dependencies...');
+                $command = "ssh {$host} \"cd {$path}/frontend && timeout 120 npm install 2>&1\"";
+                exec($command, $output, $returnCode);
 
-            if ($returnCode !== 0) {
-                $this->warn('   ⚠️  NPM install had issues');
-                $this->line('   ' . implode("\n", array_slice($output, -5)));
+                if ($returnCode !== 0) {
+                    $this->warn('   ⚠️  NPM install had issues');
+                    $this->line('   ' . implode("\n", array_slice($output, -5)));
+                    return false;
+                } else {
+                    $this->info('   ✅ Frontend dependencies installed');
+                    return true;
+                }
             } else {
-                $this->info('   ✅ Frontend dependencies installed');
+                $this->line('   ℹ️  Skipping npm install (use --install-deps to install)');
+                return null; // Skipped
             }
         } else {
             $this->line('   ℹ️  Frontend directory not found, skipping');
+            return null; // Skipped
         }
-
-        return true;
     }
 
     /**
