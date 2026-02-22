@@ -157,7 +157,7 @@ class Deploy extends Command
         $this->line("   Project path: {$path}");
 
         // Pull latest changes
-        $command = "ssh {$host} 'cd {$path} && git pull origin main 2>&1'";
+        $command = "ssh {$host} \"cd {$path} && git pull origin main 2>&1\"";
         exec($command, $output, $returnCode);
 
         if ($returnCode !== 0) {
@@ -186,7 +186,7 @@ class Deploy extends Command
         $path = env('DEPLOY_PATH', '/var/www/livegrid.ru');
 
         $this->line('   Installing PHP dependencies...');
-        $command = "ssh {$host} 'cd {$path} && composer install --no-dev --optimize-autoloader 2>&1'";
+        $command = "ssh {$host} \"cd {$path} && composer install --no-dev --optimize-autoloader 2>&1\"";
         exec($command, $output, $returnCode);
 
         if ($returnCode !== 0) {
@@ -198,12 +198,12 @@ class Deploy extends Command
 
         // Check if frontend directory exists
         $this->line('   Checking frontend dependencies...');
-        $checkCommand = "ssh {$host} 'test -d {$path}/frontend && echo exists || echo not_exists'";
+        $checkCommand = "ssh {$host} \"test -d {$path}/frontend && echo exists || echo not_exists\"";
         $checkResult = trim(shell_exec($checkCommand));
 
         if ($checkResult === 'exists') {
             $this->line('   Installing frontend dependencies...');
-            $command = "ssh {$host} 'cd {$path}/frontend && npm install 2>&1'";
+            $command = "ssh {$host} \"cd {$path}/frontend && npm install 2>&1\"";
             exec($command, $output, $returnCode);
 
             if ($returnCode !== 0) {
@@ -228,7 +228,7 @@ class Deploy extends Command
         $path = env('DEPLOY_PATH', '/var/www/livegrid.ru');
 
         $this->line('   Building frontend...');
-        $command = "ssh {$host} 'cd {$path}/frontend && npm run build 2>&1'";
+        $command = "ssh {$host} \"cd {$path}/frontend && npm run build 2>&1\"";
         exec($command, $output, $returnCode);
 
         if ($returnCode !== 0) {
@@ -265,7 +265,7 @@ class Deploy extends Command
         $path = env('DEPLOY_PATH', '/var/www/livegrid.ru');
 
         $this->line('   Running migrations...');
-        $command = "ssh {$host} 'cd {$path} && php artisan migrate --force 2>&1'";
+        $command = "ssh {$host} \"cd {$path} && php artisan migrate --force 2>&1\"";
         exec($command, $output, $returnCode);
 
         if ($returnCode !== 0) {
@@ -302,7 +302,7 @@ class Deploy extends Command
 
         foreach ($commands as $command => $description) {
             $this->line("   Clearing {$description}...");
-            $sshCommand = "ssh {$host} 'cd {$path} && php artisan {$command} 2>&1'";
+            $sshCommand = "ssh {$host} \"cd {$path} && php artisan {$command} 2>&1\"";
             exec($sshCommand, $output, $returnCode);
 
             if ($returnCode === 0) {
