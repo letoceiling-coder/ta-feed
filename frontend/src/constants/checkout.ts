@@ -1,2 +1,0 @@
-export const MIN_DELIVERY_TOTAL = 3000;
-export const FREE_DELIVERY_THRESHOLD = 7000;
