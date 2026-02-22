@@ -2,13 +2,17 @@
 
 ## Переменные окружения
 
-Добавьте в `.env` файл следующие переменные:
+Добавьте в `.env` файл следующие переменные (опционально, есть значения по умолчанию):
 
 ```env
-# Deployment configuration
+# Deployment configuration (optional - defaults are set)
 DEPLOY_HOST=root@85.198.64.93
 DEPLOY_PATH=/var/www/livegrid.ru
 ```
+
+**Примечание:** Если переменные не указаны, используются значения по умолчанию:
+- `DEPLOY_HOST=root@85.198.64.93`
+- `DEPLOY_PATH=/var/www/livegrid.ru`
 
 ## Использование команды
 
