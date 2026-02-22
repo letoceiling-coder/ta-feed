@@ -18,4 +18,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: "../public/frontend",
+    emptyOutDir: true,
+    manifest: true,
+  },
+  base: "/frontend/",
 }));
