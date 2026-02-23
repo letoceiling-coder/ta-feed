@@ -148,6 +148,24 @@ class Deploy extends Command
     }
 
     /**
+     * Run a command on the deploy server via SSH (non-interactive, with timeout).
+     * Prevents hanging on host key or password prompts.
+     *
+     * @return array{output: array, returnCode: int}
+     */
+    private function runSsh(string $remoteCommand): array
+    {
+        $host = env('DEPLOY_HOST', 'root@85.198.64.93');
+        $opts = '-o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new';
+        $command = sprintf('ssh %s %s %s 2>&1', $opts, escapeshellarg($host), escapeshellarg($remoteCommand));
+        $output = [];
+        $returnCode = -1;
+        exec($command, $output, $returnCode);
+
+        return ['output' => $output, 'returnCode' => $returnCode];
+    }
+
+    /**
      * Update server from git
      */
     private function updateServer(): bool
@@ -158,9 +176,9 @@ class Deploy extends Command
         $this->line("   Connecting to {$host}...");
         $this->line("   Project path: {$path}");
 
-        // Pull latest changes
-        $command = "ssh {$host} \"cd {$path} && git pull origin main 2>&1\"";
-        exec($command, $output, $returnCode);
+        $result = $this->runSsh("cd {$path} && git pull origin main");
+        $output = $result['output'];
+        $returnCode = $result['returnCode'];
 
         if ($returnCode !== 0) {
             $this->error('   ❌ Failed to update server');
@@ -184,12 +202,12 @@ class Deploy extends Command
      */
     private function installDependencies(): ?bool
     {
-        $host = env('DEPLOY_HOST', 'root@85.198.64.93');
         $path = env('DEPLOY_PATH', '/var/www/livegrid.ru');
 
         $this->line('   Installing PHP dependencies...');
-        $command = "ssh {$host} \"cd {$path} && composer install --no-dev --optimize-autoloader 2>&1\"";
-        exec($command, $output, $returnCode);
+        $result = $this->runSsh("cd {$path} && composer install --no-dev --optimize-autoloader");
+        $output = $result['output'];
+        $returnCode = $result['returnCode'];
 
         if ($returnCode !== 0) {
             $this->warn('   ⚠️  Composer install had issues');
@@ -198,33 +216,32 @@ class Deploy extends Command
             $this->info('   ✅ PHP dependencies installed');
         }
 
-        // Check if frontend directory exists
+        // Check if frontend directory exists (use runSsh to avoid shell_exec hang)
         $this->line('   Checking frontend dependencies...');
-        $checkCommand = "ssh {$host} \"test -d {$path}/frontend && echo exists || echo not_exists\"";
-        $checkResult = trim(shell_exec($checkCommand));
+        $result = $this->runSsh("test -d {$path}/frontend && echo exists || echo not_exists");
+        $checkResult = trim(implode("\n", $result['output']));
 
         if ($checkResult === 'exists') {
             if ($this->option('install-deps')) {
                 $this->line('   Installing frontend dependencies...');
-                $command = "ssh {$host} \"cd {$path}/frontend && timeout 120 npm install 2>&1\"";
-                exec($command, $output, $returnCode);
+                $result = $this->runSsh("cd {$path}/frontend && timeout 120 npm install");
+                $output = $result['output'];
+                $returnCode = $result['returnCode'];
 
                 if ($returnCode !== 0) {
                     $this->warn('   ⚠️  NPM install had issues');
                     $this->line('   ' . implode("\n", array_slice($output, -5)));
                     return false;
-                } else {
-                    $this->info('   ✅ Frontend dependencies installed');
-                    return true;
                 }
-            } else {
-                $this->line('   ℹ️  Skipping npm install (use --install-deps to install)');
-                return null; // Skipped
+                $this->info('   ✅ Frontend dependencies installed');
+                return true;
             }
-        } else {
-            $this->line('   ℹ️  Frontend directory not found, skipping');
-            return null; // Skipped
+            $this->line('   ℹ️  Skipping npm install (use --install-deps to install)');
+            return null;
         }
+
+        $this->line('   ℹ️  Frontend directory not found, skipping');
+        return null;
     }
 
     /**
@@ -269,12 +286,12 @@ class Deploy extends Command
      */
     private function runMigrations(): bool
     {
-        $host = env('DEPLOY_HOST', 'root@85.198.64.93');
         $path = env('DEPLOY_PATH', '/var/www/livegrid.ru');
 
         $this->line('   Running migrations...');
-        $command = "ssh {$host} \"cd {$path} && php artisan migrate --force 2>&1\"";
-        exec($command, $output, $returnCode);
+        $result = $this->runSsh("cd {$path} && php artisan migrate --force");
+        $output = $result['output'];
+        $returnCode = $result['returnCode'];
 
         if ($returnCode !== 0) {
             $this->error('   ❌ Migrations failed');
@@ -298,7 +315,6 @@ class Deploy extends Command
      */
     private function clearCache(): bool
     {
-        $host = env('DEPLOY_HOST', 'root@85.198.64.93');
         $path = env('DEPLOY_PATH', '/var/www/livegrid.ru');
 
         $commands = [
@@ -310,8 +326,8 @@ class Deploy extends Command
 
         foreach ($commands as $command => $description) {
             $this->line("   Clearing {$description}...");
-            $sshCommand = "ssh {$host} \"cd {$path} && php artisan {$command} 2>&1\"";
-            exec($sshCommand, $output, $returnCode);
+            $result = $this->runSsh("cd {$path} && php artisan {$command}");
+            $returnCode = $result['returnCode'];
 
             if ($returnCode === 0) {
                 $this->info("   ✅ {$description} cleared");

@@ -1,6 +1,7 @@
 /**
  * Данные карточек категорий секции Live Grid.
- * Иконки: предпочтительно из Figma (node-id=4-13), в src/assets/livegrid/.
+ * Иконки — только локальные файлы (из frontend/src/assets/livegrid/ или @/assets).
+ * Выгрузка из Figma: php artisan figma:export-icons
  */
 import catNewbuild from "@/assets/cat-newbuild.png";
 import catApartments from "@/assets/cat-apartments.png";
@@ -12,22 +13,25 @@ import catCommercial from "@/assets/cat-commercial.png";
 import arendaIcon from "@/assets/livegrid/arenda.svg";
 import podobratIcon from "@/assets/livegrid/podobrat.svg";
 
-export interface CategoryItem {
+export type LiveGridCategory = {
   id: string;
   title: string;
-  icon: string;
+  iconSrc: string;
   href?: string;
-}
+};
 
-export const liveGridCategories: CategoryItem[] = [
-  { id: "novostroyki", title: "Новостройки", icon: catNewbuild },
-  { id: "vtorichnaya", title: "Вторичная недвижимость", icon: catApartments },
-  { id: "arenda", title: "Аренда", icon: arendaIcon },
-  { id: "doma", title: "Дома", icon: catCottage },
-  { id: "uchastki", title: "Участки", icon: catLand },
-  { id: "ipoteka", title: "Ипотека", icon: catMortgage },
-  { id: "kvartiry", title: "Квартиры", icon: catApartments },
-  { id: "parkingi", title: "Паркинги", icon: catParking },
-  { id: "kommercheskaya", title: "Коммерческая недвижимость", icon: catCommercial },
-  { id: "podobrat", title: "Подобрать объект", icon: podobratIcon },
+/** Alias for backward compatibility */
+export type CategoryItem = LiveGridCategory;
+
+export const liveGridCategories: LiveGridCategory[] = [
+  { id: "novostroyki", title: "Новостройки", iconSrc: catNewbuild },
+  { id: "vtorichnaya", title: "Вторичная недвижимость", iconSrc: catApartments },
+  { id: "arenda", title: "Аренда", iconSrc: arendaIcon },
+  { id: "doma", title: "Дома", iconSrc: catCottage },
+  { id: "uchastki", title: "Участки", iconSrc: catLand },
+  { id: "ipoteka", title: "Ипотека", iconSrc: catMortgage },
+  { id: "kvartiry", title: "Квартиры", iconSrc: catApartments },
+  { id: "parkingi", title: "Паркинги", iconSrc: catParking },
+  { id: "kommercheskaya", title: "Коммерческая недвижимость", iconSrc: catCommercial },
+  { id: "podobrat", title: "Подобрать объект", iconSrc: podobratIcon },
 ];

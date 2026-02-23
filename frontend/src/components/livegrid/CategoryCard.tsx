@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import type { CategoryItem } from "@/data/categories.data";
+import type { LiveGridCategory } from "@/data/categories.data";
 
 interface CategoryCardProps {
-  item: CategoryItem;
+  item: LiveGridCategory;
   className?: string;
 }
 
@@ -22,7 +22,7 @@ const CategoryCard = ({ item, className }: CategoryCardProps) => (
       {item.title}
     </span>
     <img
-      src={item.icon}
+      src={item.iconSrc}
       alt=""
       className="absolute right-0 bottom-0 w-[55%] h-[85%] object-contain pointer-events-none"
       loading="lazy"

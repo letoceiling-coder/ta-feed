@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'figma' => [
+        'token' => env('FIGMA_TOKEN'),
+        'file_key' => env('FIGMA_FILE_KEY'),
+    ],
+
 ];
