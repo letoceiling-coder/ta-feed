@@ -107,7 +107,7 @@ class FigmaClient
     {
         $url = self::BASE_URL . $path;
 
-        return Http::withToken($this->token)
+        return Http::withHeaders(['X-Figma-Token' => $this->token])
             ->timeout(30)
             ->{$method}($url, $method === 'get' ? $query : []);
     }
